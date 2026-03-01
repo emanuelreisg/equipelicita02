@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EQUIPE LICITA 02 - Sistema de Alimentação</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Custom Config for Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Glassmorphism for cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        /* Bell ring animation */
+        .bell-ringing {
+            animation: bellRing 0.6s ease-in-out;
+        }
+        @keyframes bellRing {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30% { transform: rotate(-10deg); }
+            20%, 40% { transform: rotate(10deg); }
+            50% { transform: rotate(0deg); }
+        }
+        /* Toggle checkbox style */
+        .toggle-checkbox {
+            appearance: none;
+            width: 44px;
+            height: 24px;
+            background: #cbd5e1;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-checkbox:checked {
+            background: #0ea5e9;
+        }
+        .toggle-checkbox::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle-checkbox:checked::before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen font-sans">
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-block p-4 bg-brand-100 rounded-full mb-4">
+                    <i data-lucide="shield-check" class="w-12 h-12 text-brand-600"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800 mb-2">EQUIPE LICITA 02</h1>
+                <p class="text-slate-500 text-sm">Sistema de Gestão de Processos Licitatórios</p>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Usuário</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="text" id="login-username" placeholder="Digite seu usuário" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Senha</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="password" id="login-password" placeholder="Digite sua senha" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all" required>
+                    </div>
+                </div>
+                
+                <div id="login-error" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    <i data-lucide="alert-circle" class="w-4 h-4 inline mr-2"></i>
+                    <span id="login-error-message">Usuário ou senha incorretos</span>
+                </div>
+                
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2">
+                    <i data-lucide="log-in" class="w-5 h-5"></i>
+                    Entrar
+                </button>
+                
+                <div class="text-center">
+                    <button type="button" onclick="showRegisterForm()" class="text-sm text-brand-600 hover:text-brand-700 hover:underline font-medium">
+                        Não tem uma conta? Criar conta
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Register Form -->
+            <form id="register-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Nome Completo</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="text" id="register-fullname" placeholder="Digite seu nome completo" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Usuário</label>
+                    <div class="relative">
+                        <i data-lucide="at-sign" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="text" id="register-username" placeholder="Escolha um nome de usuário" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Senha</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="password" id="register-password" placeholder="Crie uma senha" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all" required>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Mínimo de 6 caracteres</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Confirmar Senha</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="password" id="register-password-confirm" placeholder="Confirme sua senha" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all" required>
+                    </div>
+                </div>
+                
+                <div id="register-error" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    <i data-lucide="alert-circle" class="w-4 h-4 inline mr-2"></i>
+                    <span id="register-error-message">Erro ao criar conta</span>
+                </div>
+                
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    Criar Conta
+                </button>
+                
+                <div class="text-center">
+                    <button type="button" onclick="showLoginForm()" class="text-sm text-brand-600 hover:text-brand-700 hover:underline font-medium">
+                        Já tem uma conta? Fazer login
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-6 pt-6 border-t border-slate-200 text-center">
+                <p class="text-xs text-slate-500">Desenvolvido por <span class="font-semibold">EMANUEL REIS</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar / Mobile Menu Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col shadow-xl">
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider text-brand-500">EQUIPE</h1>
+                    <h2 class="text-sm font-light tracking-widest text-slate-400">LICITA 02</h2>
+                </div>
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <button onclick="navigateTo('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group active-nav">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Dashboard</span>
+                </button>
+                <button onclick="navigateTo('spreadsheet')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group">
+                    <i data-lucide="table" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Planilha Alimentação</span>
+                </button>
+                <button onclick="navigateTo('reports')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Relatórios</span>
+                </button>
+                <button onclick="navigateTo('process-details')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group">
+                    <i data-lucide="file-search" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Detalhar Processos</span>
+                </button>
+                <button onclick="navigateTo('finalizados')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group">
+                    <i data-lucide="check-circle" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Processos Finalizados</span>
+                </button>
+                <button onclick="navigateTo('items')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group">
+                    <i data-lucide="package" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Itens</span>
+                </button>
+                <button onclick="navigateTo('legislacoes')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group">
+                    <i data-lucide="book-open" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Legislações Pertinentes</span>
+                </button>
+                <button onclick="navigateTo('settings')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-left group">
+                    <i data-lucide="settings" class="w-5 h-5 group-hover:text-brand-500 transition-colors"></i>
+                    <span class="font-medium">Configurações</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800">
+                <div class="flex items-center gap-3 px-4 py-2">
+                    <div class="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-sm">EL</div>
+                    <div>
+                        <p class="text-sm font-medium">Admin User</p>
+                        <p class="text-xs text-slate-500">Gestor</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50 relative">
+            
+            <!-- Top Header -->
+            <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm z-30">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-md">
+                    <i data-lucide="menu"></i>
+                </button>
+                
+                <div class="flex items-center gap-4 ml-auto">
+                    <div class="relative">
+                        <button id="notification-bell" onclick="toggleNotificationPanel()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors relative">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            <span id="bell-badge" class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full border border-white text-white text-xs flex items-center justify-center font-bold hidden">0</span>
+                        </button>
+                        <!-- Notifications Dropdown Panel -->
+                        <div id="notification-panel" class="hidden fixed right-4 top-16 w-80 bg-white rounded-lg shadow-2xl border border-slate-200 z-40">
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                                <h3 class="font-semibold text-slate-800">Últimas Ações</h3>
+                                <button onclick="closeNotificationPanel()" class="text-slate-400 hover:text-slate-600">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div id="notifications-list" class="max-h-96 overflow-y-auto">
+                                <div class="p-4 text-center text-slate-400 text-sm">Nenhuma ação registrada.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="openSessionModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        Novo Registro de Sessão
+                    </button>
+                </div>
+            </header>
+
+            <!-- Scrollable Content Area -->
+            <div id="content-area" class="flex-1 overflow-y-auto p-6 lg:p-8 relative">
+                
+                <!-- View: Dashboard -->
+                <section id="view-dashboard" class="view-section fade-in space-y-6">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-slate-800">Visão Geral</h2>
+                        <p class="text-slate-500">Bem-vindo ao sistema EQUIPE LICITA 02.</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-brand-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-slate-500 text-sm font-medium">PROCESSOS NA CAIXA</h3>
+                                <div class="p-2 bg-brand-50 rounded-lg text-brand-600">
+                                    <i data-lucide="inbox" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-800" id="dash-processos-caixa">0</p>
+                            <p class="text-xs text-slate-400 mt-1">Contagem atual</p>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-orange-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-slate-500 text-sm font-medium">PROCESSOS EM OUTRO SETOR</h3>
+                                <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
+                                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-800" id="dash-processos-outro">0</p>
+                            <p class="text-xs text-slate-400 mt-1">Registros atuais</p>
+                        </div>
+                        
+                        <div class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-slate-500 text-sm font-medium">TOTAL DE PROCESSOS</h3>
+                                <div class="p-2 bg-green-50 rounded-lg text-green-600">
+                                    <i data-lucide="target" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                            <p class="text-2xl font-bold text-slate-800" id="dash-total-processos">0</p>
+                            <p class="text-xs text-slate-400 mt-1">Soma dos dois primeiros</p>
+                        </div>
+
+                        <div id="finalizados-card" class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-emerald-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-slate-500 text-sm font-medium">PROCESSOS FINALIZADOS</h3>
+                                <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                                    <i data-lucide="check" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                            <p id="dash-processos-finalizados" class="text-2xl font-bold text-slate-800">0</p>
+                            <p class="text-xs text-slate-400 mt-1">Contagem de processos finalizados</p>
+                            <div class="border-t border-slate-200 mt-4 pt-4">
+                                <p class="text-xs text-slate-500 font-medium mb-2">ECONOMIA TOTAL</p>
+                                <p id="dash-economia-total" class="text-xl font-bold text-green-600">R$ 0,00</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-purple-500 md:col-span-2 lg:col-span-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-slate-500 text-sm font-medium">SESSÕES MARCADAS</h3>
+                                <div>
+                                    <input id="sessions-month-input" type="month" class="bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-sm">
+                                </div>
+                            </div>
+                            <div id="sessions-list" class="text-sm text-slate-700 max-h-72 overflow-y-auto space-y-2">
+                                <!-- sessions will be rendered here -->
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2">Selecione o mês para visualizar as sessões marcadas.</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Grid -->
+                    <h3 class="text-lg font-semibold text-slate-700 mb-4">Ações Rápidas</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <button onclick="openProcessModal()" class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100 hover:border-brand-200 group text-center flex flex-col items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i data-lucide="coffee" class="w-6 h-6"></i>
+                            </div>
+                            <span class="font-medium text-slate-700">NOVO PROCESSO</span>
+                        </button>
+
+                        <button onclick="navigateTo('reports')" class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100 hover:border-brand-200 group text-center flex flex-col items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                            </div>
+                            <span class="font-medium text-slate-700">RELATÓRIOS</span>
+                        </button>
+
+                        <button onclick="navigateTo('process-details')" class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100 hover:border-brand-200 group text-center flex flex-col items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i data-lucide="file-search" class="w-6 h-6"></i>
+                            </div>
+                            <span class="font-medium text-slate-700">DETALHAR PROCESSOS</span>
+                        </button>
+                        
+                        <button onclick="navigateTo('spreadsheet')" class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100 hover:border-brand-200 group text-center flex flex-col items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+                            </div>
+                            <span class="font-medium text-slate-700">Ver Planilhas</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- View: Spreadsheet -->
+                <section id="view-spreadsheet" class="view-section hidden fade-in space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">Planilha de Processos</h2>
+                            <p class="text-slate-500">Gerencie os processos cadastrados. Você pode importar e exportar a planilha em formato CSV/Excel para trabalhar externamente.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="exportCSV()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i> Exportar
+                            </button>
+                            <button onclick="triggerImport()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                                <i data-lucide="upload" class="w-4 h-4"></i> Importar
+                            </button>
+                            <button onclick="openProcessModal()" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 flex items-center gap-2 shadow-sm">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Processo
+                            </button>
+                            <input type="file" accept=".csv" id="import-file" class="hidden" onchange="importCSV(event)">
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-end">
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Buscar</label>
+                            <div class="relative">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                <input type="text" id="search-input" placeholder="Buscar por descrição..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all text-sm">
+                            </div>
+                        </div>
+                        <div class="w-full md:w-48">
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Tipo</label>
+                            <select id="filter-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                                <option value="all">Todos</option>
+                                <option value="Processo">Processo</option>
+                                <option value="Café da Manhã">Café da Manhã</option>
+                                <option value="Almoço">Almoço</option>
+                                <option value="Jantar">Jantar</option>
+                                <option value="Lanche">Lanche</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold tracking-wider">
+                                        <th class="px-6 py-4">Data</th>
+                                        <th class="px-6 py-4">Tipo</th>
+                                        <th class="px-6 py-4">Descrição</th>
+                                        <th class="px-6 py-4 text-right">Custo (R$)</th>
+                                        <th class="px-6 py-4">Situação</th>
+                                        <th class="px-6 py-4 text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
+                                    <!-- Rows will be injected by JS -->
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-8 text-center text-slate-400">Nenhum registro encontrado.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination (Static for now) -->
+                        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                            <span class="text-xs text-slate-500">Mostrando <span id="showing-count">0</span> registros</span>
+                            <div class="flex gap-1">
+                                <button class="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50" disabled><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                                <button class="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50" disabled><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Placeholder for others -->
+                <section id="view-reports" class="view-section hidden fade-in space-y-6">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-100 p-4 rounded-full inline-block text-slate-400">
+                            <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-700">Relatórios</h3>
+                            <p class="text-slate-500">Gere relatórios com base nos processos cadastrados.</p>
+                        </div>
+                    </div>
+
+                    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                        <!-- menu of report options -->
+                        <div id="report-menu" class="space-y-3">
+                            <button id="btn-menu-process" class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium shadow-sm">
+                                RELATÓRIO DE PROCESSOS E SITUAÇÕES
+                            </button>
+                            <button id="btn-menu-single" class="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-sm">
+                                RELATÓRIO DE PROCESSO
+                            </button>
+                            <button id="btn-menu-finalizados" class="w-full px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-sm">
+                                RELATÓRIO DE PROCESSOS FINALIZADOS
+                            </button>
+                            <button id="btn-menu-final" class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm">
+                                RELATÓRIO FINAL
+                            </button>
+                        </div>
+                        <!-- individual report panels -->
+                        <div id="report-process-panel" class="hidden space-y-3">
+                            <button onclick="showReportMenu()" class="text-sm text-brand-600 hover:underline">← Voltar</button>
+                            <p class="text-xs text-slate-400">O arquivo será gerado em PDF para download.</p>
+                            <button id="btn-report-process" class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium shadow-sm flex items-center justify-center gap-2">
+                                <i data-lucide="file-text" class="w-4 h-4"></i>
+                                GERAR RELATÓRIO DE PROCESSOS
+                            </button>
+                        </div>
+                        <div id="report-single-panel" class="hidden space-y-3">
+                            <button onclick="showReportMenu()" class="text-sm text-brand-600 hover:underline">← Voltar</button>
+                            <label class="block text-sm font-medium text-slate-700">Selecionar Processo</label>
+                            <select id="select-report-process" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"></select>
+                            <button id="btn-report-single-process" class="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-sm flex items-center justify-center gap-2">
+                                <i data-lucide="file-chart" class="w-4 h-4"></i>
+                                GERAR RELATÓRIO DE PROCESSO
+                            </button>
+                        </div>
+                        <div id="report-finalizados-panel" class="hidden space-y-3">
+                            <button onclick="showReportMenu()" class="text-sm text-brand-600 hover:underline">← Voltar</button>
+                            <p class="text-xs text-slate-400">Relatório de economicidade total em período selecionado.</p>
+                            <label class="block text-sm font-medium text-slate-700">Data Início</label>
+                            <input id="fin-report-date-start" type="date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                            <label class="block text-sm font-medium text-slate-700">Data Fim</label>
+                            <input id="fin-report-date-end" type="date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                            <button id="btn-report-finalizados-generate" class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-sm flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                GERAR RELATÓRIO DE FINALIZADOS
+                            </button>
+                        </div>
+                        <div id="report-final-panel" class="hidden space-y-3">
+                            <button onclick="showReportMenu()" class="text-sm text-brand-600 hover:underline">← Voltar</button>
+                            <p class="text-xs text-slate-400">Relatório final completo do processo com fundamentação legal.</p>
+                            <label class="block text-sm font-medium text-slate-700">Selecionar Processo</label>
+                            <select id="select-report-final-process" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"></select>
+                            <button id="btn-report-final-generate" class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm flex items-center justify-center gap-2">
+                                <i data-lucide="file-check" class="w-4 h-4"></i>
+                                GERAR RELATÓRIO FINAL
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="view-process-details" class="view-section hidden fade-in space-y-6">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-100 p-4 rounded-full inline-block text-indigo-600">
+                            <i data-lucide="file-search" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-700">Detalhar Processos</h3>
+                            <p class="text-slate-500">Selecione um processo para editar seus detalhes.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200">
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                                <h4 class="font-semibold text-slate-700">Lista de Processos</h4>
+                            </div>
+                            <div id="process-list" class="p-4 space-y-2 max-h-[520px] overflow-y-auto"></div>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <div id="process-detail-card" class="hidden bg-white rounded-xl shadow-sm border border-slate-200">
+                                <div class="p-4 border-b border-slate-200">
+                                    <h4 id="process-detail-title" class="font-semibold text-slate-700">PROCESSO</h4>
+                                </div>
+                                <div class="p-6 space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">OBJETO</label>
+                                            <textarea id="detail-object" rows="3" placeholder="Descreva o objeto do processo" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">VALOR ESTIMADO (R$)</label>
+                                            <input type="text" id="detail-estimated" placeholder="R$ 0,00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                            <p class="text-xs text-slate-400 mt-1">Valor inicialmente puxado da planilha de processos.</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">NÚMEROS DE ITENS</label>
+                                            <input type="number" id="detail-items-count" min="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">EMPRESAS PARTICIPANTES</label>
+                                            <textarea id="detail-companies" rows="3" placeholder="Informe os nomes separados por vírgula" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">NÚMERO DE EMPRESAS PARTICIPANTES</label>
+                                            <input type="number" id="detail-companies-count" min="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">DATA DE PUBLICAÇÃO DE EDITAL</label>
+                                            <input type="date" id="detail-publish-date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">VALOR DA CONTRATAÇÃO (R$)</label>
+                                            <input type="text" id="detail-contract" placeholder="R$ 0,00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">BREVE RESUMO PROCESSUAL</label>
+                                            <textarea id="detail-summary" rows="4" placeholder="Faça um resumo do andamento do processo" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">CONSIDERAÇÕES FINAIS</label>
+                                            <textarea id="detail-considerations" rows="4" placeholder="Registre considerações e observações finais" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                                        </div>
+
+                                        <!-- Items and companies section -->
+                                        <div class="md:col-span-2">
+                                            <h5 class="text-sm font-semibold text-slate-700 mb-2">Itens / Empresas</h5>
+                                            <div id="items-list" class="space-y-4"></div>
+                                            <button type="button" id="add-item-btn" onclick="openItemModal()" class="mt-2 px-3 py-1 bg-brand-600 text-white rounded-lg hover:bg-brand-700 text-sm">+ ADD ITEM</button>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2 flex gap-3">
+                                        <button id="detail-save" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-medium shadow-sm">Salvar Detalhes</button>
+                                        <button onclick="navigateTo('dashboard')" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium">Voltar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-finalizados" class="view-section hidden fade-in space-y-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-emerald-100 p-4 rounded-full inline-block text-emerald-600">
+                            <i data-lucide="check-circle" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-700">Processos Finalizados</h3>
+                            <p class="text-slate-500">Registre e visualize processos finalizados com relatório de economia.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mb-6">
+                        <button onclick="openFinalizadoModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium shadow-sm flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Cadastrar Processo Finalizado
+                        </button>
+                        <button onclick="exportFinalizadosCSV()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Exportar
+                        </button>
+                        <button onclick="triggerFinalizadosImport()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Importar
+                        </button>
+                        <input type="file" accept=".csv" id="import-finalizados-file" class="hidden" onchange="importFinalizadosCSV(event)">
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold tracking-wider">
+                                        <th class="px-6 py-4">Nº Processo</th>
+                                        <th class="px-6 py-4">SF</th>
+                                        <th class="px-6 py-4">Objeto</th>
+                                        <th class="px-6 py-4 text-right">Valor Estimado</th>
+                                        <th class="px-6 py-4 text-right">Valor Contratação</th>
+                                        <th class="px-6 py-4">Data Finalização</th>
+                                        <th class="px-6 py-4 text-right">Economia</th>
+                                        <th class="px-6 py-4 text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="finalizados-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
+                                    <tr>
+                                        <td colspan="8" class="px-6 py-8 text-center text-slate-400">Nenhum processo finalizado registrado.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                            <span class="text-sm font-medium text-slate-700">Total Economia: <span id="finalizados-total-economia" class="font-bold text-emerald-600">R$ 0,00</span></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-items" class="view-section hidden fade-in space-y-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-blue-100 p-4 rounded-full inline-block text-blue-600">
+                            <i data-lucide="package" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-700">Gerenciar Itens</h3>
+                            <p class="text-slate-500">Adicione e gerencie itens e propostas de empresas para os processos.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200">
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                                <h4 class="font-semibold text-slate-700">Selecionar Processo</h4>
+                            </div>
+                            <div id="items-process-list" class="p-4 space-y-2 max-h-[520px] overflow-y-auto"></div>
+                        </div>
+                        
+                        <div class="lg:col-span-2">
+                            <div id="items-detail-card" class="hidden bg-white rounded-xl shadow-sm border border-slate-200">
+                                <div class="p-4 border-b border-slate-200">
+                                    <h4 id="items-detail-title" class="font-semibold text-slate-700">ITENS DO PROCESSO</h4>
+                                </div>
+                                <div class="p-6 space-y-4">
+                                    <div class="md:col-span-2">
+                                        <h5 class="text-sm font-semibold text-slate-700 mb-2">Itens / Empresas</h5>
+                                        <div id="items-list-view" class="space-y-4"></div>
+                                        <button type="button" onclick="openItemModalFromView()" class="mt-2 px-3 py-1 bg-brand-600 text-white rounded-lg hover:bg-brand-700 text-sm">+ ADD ITEM</button>
+                                    </div>
+                                    <div class="pt-2 flex gap-3">
+                                        <button onclick="saveItemsFromView()" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-medium shadow-sm">Salvar Itens</button>
+                                        <button onclick="navigateTo('dashboard')" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium">Voltar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-legislacoes" class="view-section hidden fade-in space-y-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-indigo-100 p-4 rounded-full inline-block text-indigo-600">
+                            <i data-lucide="book-open" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-700">Legislações Pertinentes</h3>
+                            <p class="text-slate-500">Gerencie e consulte as legislações aplicáveis aos processos licitatórios.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 mb-6">
+                        <button onclick="openLegislacaoModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium shadow-sm flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Adicionar Legislação
+                        </button>
+                        <button onclick="exportLegislacoesCSV()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Exportar
+                        </button>
+                        <button onclick="triggerImportLegislacoes()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Importar
+                        </button>
+                        <input type="file" accept=".csv,.xlsx,.xls" id="import-legislacoes-file" class="hidden" onchange="importLegislacoesFile(event)">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div id="legislacoes-list" class="col-span-full space-y-4">
+                            <!-- Legislações will be rendered here -->
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="view-settings" class="view-section hidden fade-in space-y-6">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-slate-800">Configurações do Sistema</h2>
+                        <p class="text-slate-500">Gerencie as configurações e dados do sistema.</p>
+                    </div>
+
+                    <!-- Settings Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Gerenciamento de Usuários -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-3 bg-indigo-100 rounded-lg text-indigo-600">
+                                        <i data-lucide="users" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-800">Gerenciamento de Usuários</h3>
+                                        <p class="text-sm text-slate-500">Gerencie os usuários do sistema</p>
+                                    </div>
+                                </div>
+                                <button onclick="openUserModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2">
+                                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                    Adicionar Usuário
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
+                                            <th class="px-4 py-3">Usuário</th>
+                                            <th class="px-4 py-3">Nome Completo</th>
+                                            <th class="px-4 py-3">Perfil</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3 text-center">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body" class="divide-y divide-slate-100 text-sm">
+                                        <!-- Users will be rendered here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Backup e Restauração -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-3 bg-blue-100 rounded-lg text-blue-600">
+                                    <i data-lucide="database" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-slate-800">Backup e Restauração</h3>
+                                    <p class="text-sm text-slate-500">Faça backup ou restaure seus dados</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <button onclick="backupAllData()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2">
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                    Fazer Backup Completo
+                                </button>
+                                <button onclick="triggerRestoreData()" class="w-full px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium flex items-center justify-center gap-2">
+                                    <i data-lucide="upload" class="w-4 h-4"></i>
+                                    Restaurar Backup
+                                </button>
+                                <input type="file" accept=".json" id="restore-file" class="hidden" onchange="restoreData(event)">
+                            </div>
+                        </div>
+
+                        <!-- Limpar Dados -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-3 bg-red-100 rounded-lg text-red-600">
+                                    <i data-lucide="trash-2" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-slate-800">Limpar Dados</h3>
+                                    <p class="text-sm text-slate-500">Remova dados específicos do sistema</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <button onclick="clearProcessos()" class="w-full px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-50 font-medium text-sm">
+                                    Limpar Processos
+                                </button>
+                                <button onclick="clearFinalizados()" class="w-full px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-50 font-medium text-sm">
+                                    Limpar Finalizados
+                                </button>
+                                <button onclick="clearSessions()" class="w-full px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-50 font-medium text-sm">
+                                    Limpar Sessões
+                                </button>
+                                <button onclick="clearLegislacoes()" class="w-full px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-50 font-medium text-sm">
+                                    Limpar Legislações
+                                </button>
+                                <button onclick="clearAllData()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                                    Limpar Todos os Dados
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Informações do Sistema -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-3 bg-purple-100 rounded-lg text-purple-600">
+                                    <i data-lucide="info" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-slate-800">Informações do Sistema</h3>
+                                    <p class="text-sm text-slate-500">Estatísticas e informações gerais</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between py-2 border-b border-slate-100">
+                                    <span class="text-slate-600">Total de Processos:</span>
+                                    <span class="font-semibold text-slate-800" id="info-processos">0</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-slate-100">
+                                    <span class="text-slate-600">Processos Finalizados:</span>
+                                    <span class="font-semibold text-slate-800" id="info-finalizados">0</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-slate-100">
+                                    <span class="text-slate-600">Sessões Marcadas:</span>
+                                    <span class="font-semibold text-slate-800" id="info-sessions">0</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-slate-100">
+                                    <span class="text-slate-600">Legislações:</span>
+                                    <span class="font-semibold text-slate-800" id="info-legislacoes">0</span>
+                                </div>
+                                <div class="flex justify-between py-2">
+                                    <span class="text-slate-600">Última Atualização:</span>
+                                    <span class="font-semibold text-slate-800" id="info-last-update">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferências -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-3 bg-green-100 rounded-lg text-green-600">
+                                    <i data-lucide="sliders" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-slate-800">Preferências</h3>
+                                    <p class="text-sm text-slate-500">Personalize o sistema</p>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="flex items-center justify-between cursor-pointer">
+                                        <span class="text-sm text-slate-700">Notificações Sonoras</span>
+                                        <input type="checkbox" id="pref-sound" class="toggle-checkbox">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="flex items-center justify-between cursor-pointer">
+                                        <span class="text-sm text-slate-700">Auto-salvar</span>
+                                        <input type="checkbox" id="pref-autosave" checked class="toggle-checkbox">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-slate-700 mb-2">Nome do Pregoeiro</label>
+                                    <input type="text" id="pref-pregoeiro" placeholder="Emanuel Reis" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-slate-700 mb-2">Equipe de Apoio</label>
+                                    <input type="text" id="pref-equipe" placeholder="Renally Medeiros" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                                </div>
+                                <button onclick="savePreferences()" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
+                                    Salvar Preferências
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Sobre o Sistema -->
+                    <div class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-sm p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold mb-2">EQUIPE LICITA 02</h3>
+                                <p class="text-brand-100 text-sm">Sistema de Gestão de Processos Licitatórios</p>
+                                <p class="text-brand-200 text-xs mt-2">Versão 1.0.0 • 2026</p>
+                                <p class="text-brand-100 text-xs mt-3 flex items-center gap-2">
+                                    <i data-lucide="code" class="w-3 h-3"></i>
+                                    Desenvolvido por <span class="font-semibold">EMANUEL REIS</span>
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                                    <p class="text-xs text-brand-100">Desenvolvido para</p>
+                                    <p class="font-semibold">Fundação Paraibana de Gestão em Saúde</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+    <!-- Modal for Adding/Editing -->
+    <div id="modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transition-all scale-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800" id="modal-title">Adicionar Registro</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="food-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="entry-id">
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Data</label>
+                    <input type="date" id="entry-date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tipo de Refeição</label>
+                    <select id="entry-type" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="Café da Manhã">Café da Manhã</option>
+                        <option value="Almoço">Almoço</option>
+                        <option value="Jantar">Jantar</option>
+                        <option value="Lanche">Lanche</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
+                    <input type="text" id="entry-desc" placeholder="Ex: Arroz, feijão e frango" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Custo (R$)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
+                        <input type="number" id="entry-cost" step="0.01" min="0" placeholder="0.00" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium">Cancelar</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-medium shadow-sm">Salvar</button>
+                </div>
+            </form>
+
+            <form id="process-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">NÚMERO DO PROCESSO</label>
+                    <input type="text" id="process-number" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">SELEÇÃO DE FORNECEDORES</label>
+                    <input type="text" id="process-selection" placeholder="Ex.: Dispensa, Pregão, Cotação..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nº COMPRAS.GOV</label>
+                    <input type="text" id="compras-gov-number" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">VALOR TOTAL ESTIMADO (R$)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
+                        <input type="number" id="estimated-total" step="0.01" min="0" placeholder="0.00" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">SITUAÇÃO PROCESSUAL</label>
+                    <select id="procedural-status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="Edital Publicado">Edital Publicado</option>
+                        <option value="Processo em correção">Processo em correção</option>
+                        <option value="Processo em pesquisa">Processo em pesquisa</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium">Cancelar</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-medium shadow-sm">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Session Modal -->
+    <!-- Item Modal -->
+    <div id="item-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeItemModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transition-all scale-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Adicionar / Editar Item</h3>
+                <button onclick="closeItemModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="item-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
+                    <input id="item-desc" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Quantidade</label>
+                        <input id="item-qty" type="number" step="any" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Unidade</label>
+                        <input id="item-unit" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Valor Estimado (R$)</label>
+                        <input id="item-estimated" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                    </div>
+                </div>
+                <input id="item-index" type="hidden" value="-1">
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeItemModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-lg">Salvar Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Company Modal -->
+    <div id="company-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeCompanyModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transition-all scale-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Adicionar / Editar Empresa</h3>
+                <button onclick="closeCompanyModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="company-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Empresa</label>
+                    <input id="company-name" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">CNPJ</label>
+                    <input id="company-cnpj" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Valor Unitário (R$)</label>
+                    <input id="company-unit-value" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <input id="company-item-index" type="hidden" value="-1">
+                <input id="company-index" type="hidden" value="-1">
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeCompanyModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-lg">Salvar Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Finalizado Modal -->
+    <div id="finalizado-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeFinalizadoModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transition-all scale-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Cadastrar Processo Finalizado</h3>
+                <button onclick="closeFinalizadoModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="finalizado-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Número do Processo</label>
+                    <input id="fin-process-number" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">SF (Seleção de Fornecedores)</label>
+                    <input id="fin-sf" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Objeto</label>
+                    <textarea id="fin-object" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Valor Estimado (R$)</label>
+                    <input id="fin-estimated" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Valor da Contratação (R$)</label>
+                    <input id="fin-contract" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Data de Finalização</label>
+                    <input id="fin-date" type="date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                </div>
+                <input id="fin-index" type="hidden" value="-1">
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" onclick="closeFinalizadoModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="session-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeSessionModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transition-all scale-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Novo Registro de Sessão</h3>
+                <button onclick="closeSessionModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="session-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Processo</label>
+                    <select id="session-process" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Data da Sessão</label>
+                        <input id="session-date" type="date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Horário</label>
+                        <input id="session-time" type="time" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                    </div>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeSessionModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-lg">Salvar Sessão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Management Modal -->
+    <div id="user-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeUserModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transition-all scale-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800" id="user-modal-title">Adicionar Usuário</h3>
+                <button onclick="closeUserModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="user-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Usuário (Login)</label>
+                    <input id="user-username" type="text" placeholder="usuario123" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nome Completo</label>
+                    <input id="user-fullname" type="text" placeholder="João da Silva" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+                    <input id="user-password" type="password" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <p class="text-xs text-slate-400 mt-1" id="password-hint">Deixe em branco para manter a senha atual</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Perfil</label>
+                    <select id="user-role" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="admin">Administrador</option>
+                        <option value="user">Usuário</option>
+                        <option value="viewer">Visualizador</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="user-active" checked class="toggle-checkbox">
+                        <span class="text-sm text-slate-700">Usuário Ativo</span>
+                    </label>
+                </div>
+                <input id="user-index" type="hidden" value="-1">
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" onclick="closeUserModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Legislacao Modal -->
+    <div id="legislacao-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeLegislacaoModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-xl shadow-2xl p-6 transition-all scale-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Adicionar Legislação</h3>
+                <button onclick="closeLegislacaoModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="legislacao-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Título da Legislação</label>
+                    <input id="leg-title" type="text" placeholder="Ex: Lei 14.133/2021" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                    <select id="leg-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="Lei">Lei</option>
+                        <option value="Decreto">Decreto</option>
+                        <option value="Portaria">Portaria</option>
+                        <option value="Instrução Normativa">Instrução Normativa</option>
+                        <option value="Resolução">Resolução</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
+                    <textarea id="leg-description" rows="4" placeholder="Breve descrição sobre a legislação..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Link / URL (opcional)</label>
+                    <input id="leg-url" type="url" placeholder="https://..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Data de Publicação</label>
+                    <input id="leg-date" type="date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <input id="leg-index" type="hidden" value="-1">
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" onclick="closeLegislacaoModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 z-50">
+        <i data-lucide="check-circle" class="text-green-400 w-5 h-5"></i>
+        <span id="toast-message">Operação realizada com sucesso!</span>
+    </div>
+
+    <!-- Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
